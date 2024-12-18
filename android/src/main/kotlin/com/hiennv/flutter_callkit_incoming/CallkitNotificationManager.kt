@@ -570,6 +570,13 @@ class CallkitNotificationManager(private val context: Context) {
         }
     }
 
+    fun canUseFullScreenIntent(): Boolean {
+        if(Build.VERSION.SDK_INT > 33) {
+            return getNotificationManager().canUseFullScreenIntent()
+        }
+        return true
+    }
+
     fun requestFullIntentPermission(activity: Activity?) {
         if (Build.VERSION.SDK_INT > 33) {
            val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {

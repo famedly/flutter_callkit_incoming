@@ -276,6 +276,11 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     }
                     callkitNotificationManager?.requestNotificationPermission(activity, map)
                 }
+
+                "canUseFullScreenIntent" -> {
+                    callkitNotificationManager?.canUseFullScreenIntent()
+                }
+
                 "requestFullIntentPermission" -> {
                     callkitNotificationManager?.requestFullIntentPermission(activity)
                 }

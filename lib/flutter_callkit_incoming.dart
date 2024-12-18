@@ -133,7 +133,14 @@ class FlutterCallkitIncoming {
     return await _channel.invokeMethod("requestNotificationPermission", data);
   }
 
-  /// Request permisstion show notification for Android(14)+
+  /// Check if full screen notification is granted for Android(14)+
+  /// Only Android: check if permission for ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT is granted
+  static Future<bool> canUseFullScreenIntent() async {
+    return (await _channel.invokeMethod("canUseFullScreenIntent")) as bool? ??
+        false;
+  }
+
+  /// Request permission show notification for Android(14)+
   /// Only Android: show request permission for ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT
   static Future requestFullIntentPermission() async {
     return await _channel.invokeMethod("requestFullIntentPermission");
