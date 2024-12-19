@@ -1,5 +1,23 @@
 # Flutter Callkit Incoming
 
+## Custom UI - 
+
+![](images/newUI.png)
+
+## How to update the to plugin to latest version
+
+1. Create a new branch from the latest version tag on [our flutter_callkit_incoming repo clone](https://github.com/famedly/flutter_callkit_incoming/) - `git fetch origin && git checkout -b <new-branch-name> tags/vX.Y.Z`
+2. Set remote "upstream" to the actual repo - `git remote add upstream https://github.com/hiennguyen92/flutter_callkit_incoming.git`
+3. Now rebase the branch on the upstream's latest version tag - `git fetch upstream && git rebase upstream/vX.Y.Z`
+4. Push the branch to your repo - `git push origin <new-branch-name>`
+5. Once it is approved, create a tag from it - `git tag vX.Y.Z`
+6. Push the tag to your repo - `git push origin vX.Y.Z`
+
+**IMPORTANT**
+- Make sure to only do minimal changes to the code so it is always easy to maintain. The allowed changes are the ones specific to the custom UI.
+- Always look for whitespace changes and remove them before committing. These changes are not needed and make the diffs harder to read when rebasing later.
+- If you're doing a bug fix, please do it first in the original repo. Once it's merged there and a new release is done, follow the steps above to update the plugin in our fork.
+
 A Flutter plugin to show incoming call in your Flutter app(Custom for Android/Callkit for iOS).
 
 [![pub package](https://img.shields.io/pub/v/flutter_callkit_incoming.svg)](https://pub.dev/packages/flutter_callkit_incoming)
@@ -145,6 +163,12 @@ Our top sponsors are shown below!
         "rationaleMessagePermission": "Notification permission is required, to show notification.",
         "postNotificationMessageRequired": "Notification permission is required, Please allow notification permission from setting."
       });
+    ```
+
+  * request permission for full intent Notification/full screen locked screen Android 14+
+  For Android 14+, please `requestFullIntentPermission`
+    ```dart
+      await FlutterCallkitIncoming.requestFullIntentPermission();
     ```
 
   * Show miss call notification
@@ -504,7 +528,7 @@ Our top sponsors are shown below!
     |  **`incomingCallNotificationChannelName`** | Notification channel name of incoming call.                                                          | `Incoming call`                                                   |
     |  **`missedCallNotificationChannelName`** | Notification channel name of missed call.                                                            | `Missed call`                                                     |
     |  **`isShowCallID`** | Show call id app inside full screen/notification.                                                    | false                                                             |
-    |  **`isShowFullLockedScreen`** | Show full screen on Locked Screen.                                                                   | true                                                              |
+    |  **`isShowFullLockedScreen`** | Show full screen on Locked Screen(please make sure call `requestFullIntentPermission` for android 14+).                                                                   | true                                                              |
 
     <br>
 
