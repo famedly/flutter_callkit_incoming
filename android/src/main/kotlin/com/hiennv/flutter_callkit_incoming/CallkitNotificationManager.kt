@@ -29,7 +29,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
-import com.hiennv.flutter_callkit_incoming.widgets.CircleTransform
 import com.squareup.picasso.OkHttp3Downloader
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -183,7 +182,7 @@ class CallkitNotificationManager(private val context: Context) {
                 val headers =
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
                 getPicassoInstance(context, headers).load(avatarUrl)
-                    .into(targetLoadAvatarDefault)
+                    .error(R.drawable.ic_default_avatar).into(targetLoadAvatarDefault)
             }
             val caller = data.getString(CallkitConstants.EXTRA_CALLKIT_NAME_CALLER, "")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -256,11 +255,23 @@ class CallkitNotificationManager(private val context: Context) {
             if (TextUtils.isEmpty(textAccept)) context.getString(R.string.text_accept) else textAccept
         )
         val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-        if (avatarUrl != null && avatarUrl.isNotEmpty()) {
+
+         var temp = data.getString(CallkitConstants.EXTRA_CALLKIT_NAME_CALLER, "")?.split(' ')
+            ?.mapNotNull { it.firstOrNull()?.toString() }
+            ?.reduce { acc, s -> acc + s }
+        if (temp?.length!! < 2) temp =
+            data?.getString(CallkitConstants.EXTRA_CALLKIT_NAME_CALLER, "")?.substring(0, 2)
+
+        remoteViews.setTextViewText(
+            R.id.ivAvatarPlaceholder,
+            temp
+        )
+
+        if (avatarUrl != null && avatarUrl.isNotEmpty() && avatarUrl != "null") {
             val headers =
                 data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
             getPicassoInstance(context, headers).load(avatarUrl)
-                .transform(CircleTransform())
+                .error(R.drawable.ic_default_avatar)
                 .into(targetLoadAvatarCustomize)
         }
     }
@@ -347,7 +358,7 @@ class CallkitNotificationManager(private val context: Context) {
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
                 getPicassoInstance(context, headers).load(avatarUrl)
-                    .transform(CircleTransform()).into(targetLoadAvatarCustomize)
+                    .error(R.drawable.ic_default_avatar).into(targetLoadAvatarCustomize)
             }
             notificationBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
             notificationBuilder.setCustomContentView(notificationViews)
@@ -371,7 +382,7 @@ class CallkitNotificationManager(private val context: Context) {
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
                 getPicassoInstance(context, headers).load(avatarUrl)
-                    .into(targetLoadAvatarDefault)
+                    .error(R.drawable.ic_default_avatar).into(targetLoadAvatarDefault)
             }
             val isShowCallback = data.getBoolean(
                 CallkitConstants.EXTRA_CALLKIT_MISSED_CALL_CALLBACK_SHOW,

@@ -1,7 +1,6 @@
 package com.hiennv.flutter_callkit_incoming
 
 import android.app.Activity
-import android.app.ActivityManager
 import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -9,28 +8,19 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.graphics.Color
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.Window
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.hiennv.flutter_callkit_incoming.widgets.RippleRelativeLayout
-import com.squareup.picasso.Picasso
-import de.hdodenhof.circleimageview.CircleImageView
-import kotlin.math.abs
-import okhttp3.OkHttpClient
 import com.squareup.picasso.OkHttp3Downloader
-import android.view.ViewGroup.MarginLayoutParams
-import android.os.PowerManager
-import android.text.TextUtils
-import android.util.Log
-
+import com.squareup.picasso.Picasso
+import okhttp3.OkHttpClient
+import kotlin.math.abs
 
 class CallkitIncomingActivity : Activity() {
 
@@ -68,20 +58,17 @@ class CallkitIncomingActivity : Activity() {
     private var endedCallkitIncomingBroadcastReceiver = EndedCallkitIncomingBroadcastReceiver()
 
     private lateinit var ivBackground: ImageView
-    private lateinit var llBackgroundAnimation: RippleRelativeLayout
-
     private lateinit var tvNameCaller: TextView
     private lateinit var tvNumber: TextView
     private lateinit var ivLogo: ImageView
-    private lateinit var ivAvatar: CircleImageView
-
+    private lateinit var ivAvatar: ImageView
     private lateinit var llAction: LinearLayout
     private lateinit var ivAcceptCall: ImageView
-    private lateinit var tvAccept: TextView
-
     private lateinit var ivDeclineCall: ImageView
-    private lateinit var tvDecline: TextView
 
+    private lateinit var tvCallerOrganization: TextView
+    private lateinit var ivAvatarPlaceholder: TextView
+    
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -179,6 +166,10 @@ class CallkitIncomingActivity : Activity() {
         tvNumber.text = data?.getString(CallkitConstants.EXTRA_CALLKIT_HANDLE, "")
         tvNumber.visibility = if (isShowCallID == true) View.VISIBLE else View.INVISIBLE
 
+        // To show the caller's organization
+        val extra = data?.getSerializable(CallkitConstants.EXTRA_CALLKIT_EXTRA) as HashMap<String, Any?>
+        tvCallerOrganization.text = extra?.get("callerOrganization") as String?
+
 		try {
 			tvNameCaller.setTextColor(Color.parseColor(textColor))
 			tvNumber.setTextColor(Color.parseColor(textColor))
@@ -189,35 +180,26 @@ class CallkitIncomingActivity : Activity() {
         ivLogo.visibility = if (isShowLogo == true) View.VISIBLE else View.INVISIBLE
 
         val avatarUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-        if (avatarUrl != null && avatarUrl.isNotEmpty()) {
+        var temp = data?.getString(CallkitConstants.EXTRA_CALLKIT_NAME_CALLER, "")?.split(' ')
+            ?.mapNotNull { it.firstOrNull()?.toString() }
+            ?.reduce { acc, s -> acc + s }
+        if (temp?.length!! < 2) temp =
+            data?.getString(CallkitConstants.EXTRA_CALLKIT_NAME_CALLER, "")?.substring(0, 2)
+        ivAvatarPlaceholder.text = temp
+        if (avatarUrl != null && avatarUrl.isNotEmpty() && avatarUrl != "null") {
             ivAvatar.visibility = View.VISIBLE
             val headers = data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
             getPicassoInstance(this@CallkitIncomingActivity, headers)
                     .load(avatarUrl)
-                    .placeholder(R.drawable.ic_default_avatar)
                     .error(R.drawable.ic_default_avatar)
                     .into(ivAvatar)
         }
 
         val callType = data?.getInt(CallkitConstants.EXTRA_CALLKIT_TYPE, 0) ?: 0
-        if (callType > 0) {
-            ivAcceptCall.setImageResource(R.drawable.ic_video)
-        }
         val duration = data?.getLong(CallkitConstants.EXTRA_CALLKIT_DURATION, 0L) ?: 0L
         wakeLockRequest(duration)
 
         finishTimeout(data, duration)
-
-        val textAccept = data?.getString(CallkitConstants.EXTRA_CALLKIT_TEXT_ACCEPT, "")
-        tvAccept.text = if (TextUtils.isEmpty(textAccept)) getString(R.string.text_accept) else textAccept
-        val textDecline = data?.getString(CallkitConstants.EXTRA_CALLKIT_TEXT_DECLINE, "")
-        tvDecline.text = if (TextUtils.isEmpty(textDecline)) getString(R.string.text_decline) else textDecline
-
-		try {
-			tvAccept.setTextColor(Color.parseColor(textColor))
-			tvDecline.setTextColor(Color.parseColor(textColor))
-		} catch (error: Exception) {
-		}
 
         val backgroundColor = data?.getString(CallkitConstants.EXTRA_CALLKIT_BACKGROUND_COLOR, "#0955fa")
         try {
@@ -254,15 +236,14 @@ class CallkitIncomingActivity : Activity() {
 
     private fun initView() {
         ivBackground = findViewById(R.id.ivBackground)
-        llBackgroundAnimation = findViewById(R.id.llBackgroundAnimation)
-        llBackgroundAnimation.layoutParams.height =
-                Utils.getScreenWidth() + Utils.getStatusBarHeight(this@CallkitIncomingActivity)
-        llBackgroundAnimation.startRippleAnimation()
 
         tvNameCaller = findViewById(R.id.tvNameCaller)
         tvNumber = findViewById(R.id.tvNumber)
         ivLogo = findViewById(R.id.ivLogo)
         ivAvatar = findViewById(R.id.ivAvatar)
+
+        tvCallerOrganization = findViewById(R.id.tvCallerOrganization)
+        ivAvatarPlaceholder = findViewById(R.id.ivAvatarPlaceholder)
 
         llAction = findViewById(R.id.llAction)
 
@@ -271,10 +252,7 @@ class CallkitIncomingActivity : Activity() {
         llAction.layoutParams = params
 
         ivAcceptCall = findViewById(R.id.ivAcceptCall)
-        tvAccept = findViewById(R.id.tvAccept)
         ivDeclineCall = findViewById(R.id.ivDeclineCall)
-        tvDecline = findViewById(R.id.tvDecline)
-        animateAcceptCall()
 
         ivAcceptCall.setOnClickListener {
             onAcceptClick()
@@ -282,12 +260,6 @@ class CallkitIncomingActivity : Activity() {
         ivDeclineCall.setOnClickListener {
             onDeclineClick()
         }
-    }
-
-    private fun animateAcceptCall() {
-        val shakeAnimation =
-                AnimationUtils.loadAnimation(this@CallkitIncomingActivity, R.anim.shake_anim)
-        ivAcceptCall.animation = shakeAnimation
     }
 
 
