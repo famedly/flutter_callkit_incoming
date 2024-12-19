@@ -38,6 +38,9 @@ class CallKitParams {
   final String? textAccept;
   final String? textDecline;
   final NotificationParams? missedCallNotification;
+
+  /// Extra data.
+  /// Send caller's organization using `callerOrganization` key inside `extra` map.
   final Map<String, dynamic>? extra;
   final Map<String, dynamic>? headers;
   final AndroidParams? android;
