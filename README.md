@@ -1,5 +1,23 @@
 # Flutter Callkit Incoming
 
+## Custom UI - 
+
+![](images/newUI.png)
+
+## How to update the to plugin to latest version
+
+1. Create a new branch from the latest version tag on [our flutter_callkit_incoming repo clone](https://github.com/famedly/flutter_callkit_incoming/) - `git fetch origin && git checkout -b <new-branch-name> tags/vX.Y.Z`
+2. Set remote "upstream" to the actual repo - `git remote add upstream https://github.com/hiennguyen92/flutter_callkit_incoming.git`
+3. Now rebase the branch on the upstream's latest version tag - `git fetch upstream && git rebase upstream/vX.Y.Z`
+4. Push the branch to your repo - `git push origin <new-branch-name>`
+5. Once it is approved, create a tag from it - `git tag vX.Y.Z`
+6. Push the tag to your repo - `git push origin vX.Y.Z`
+
+**IMPORTANT**
+- Make sure to only do minimal changes to the code so it is always easy to maintain. The allowed changes are the ones specific to the custom UI.
+- Always look for whitespace changes and remove them before committing. These changes are not needed and make the diffs harder to read when rebasing later.
+- If you're doing a bug fix, please do it first in the original repo. Once it's merged there and a new release is done, follow the steps above to update the plugin in our fork.
+
 A Flutter plugin to show incoming call in your Flutter app(Custom for Android/Callkit for iOS).
 
 [![pub package](https://img.shields.io/pub/v/flutter_callkit_incoming.svg)](https://pub.dev/packages/flutter_callkit_incoming)
@@ -26,14 +44,14 @@ Our top sponsors are shown below!
 
   <br>
 
-## iOS: ONLY WORKING ON REAL DEVICE, not on simulator(Callkit framework not working on simulator)
+## iOS: ONLY WORKING ON REAL DEVICE PLEASE MAKE SURE SETUP/USING <a href="https://github.com/hiennguyen92/flutter_callkit_incoming/blob/master/PUSHKIT.md" target="_blank">PUSHKIT</a> FOR VOIP
+* please not using on simulator(Callkit framework not working on simulator)
 
 <br>
 
 ## 🚀&nbsp; Installation
 
-1. Install Packages
-
+1. Install Packages(for version >=v2.5.0, please make sure install and use java sdk version >= 17(Android))
   * Run this command:
     ```console
     flutter pub add flutter_callkit_incoming
@@ -43,40 +61,40 @@ Our top sponsors are shown below!
           dependencies:
             flutter_callkit_incoming: any
       ```
-      2. Configure Project
-         * Android
-            * AndroidManifest.xml
-            ```
-             <manifest...>
-                 ...
-                 <!--
-                     Using for load image from internet
-                 -->
-                 <uses-permission android:name="android.permission.INTERNET"/>
+2. Configure Project
+    * Android
+      * AndroidManifest.xml
+      ```
+        <manifest...>
+            ...
+            <!--
+                Using for load image from internet
+            -->
+            <uses-permission android:name="android.permission.INTERNET"/>
 
-               <application ...>
-                   <activity ...
-                      android:name=".MainActivity"
-                      android:launchMode="singleInstance">
-                    ...
-               ...
-    
-             </manifest>
-            ```
-            The following rule needs to be added in the proguard-rules.pro to avoid obfuscated keys.
-            ```
-             -keep class com.hiennv.flutter_callkit_incoming.** { *; }
-            ```
-  * iOS
-     * Info.plist
+          <application ...>
+              <activity ...
+                android:name=".MainActivity"
+                android:launchMode="singleInstance">
+              ...
+          ...
+
+        </manifest>
       ```
-      <key>UIBackgroundModes</key>
-      <array>
-          <string>voip</string>
-          <string>remote-notification</string>
-          <string>processing</string> //you can add this if needed
-      </array>
+      The following rule needs to be added in the proguard-rules.pro to avoid obfuscated keys.
       ```
+        -keep class com.hiennv.flutter_callkit_incoming.** { *; }
+      ```
+    * iOS
+      * Info.plist
+        ```
+        <key>UIBackgroundModes</key>
+        <array>
+            <string>voip</string>
+            <string>remote-notification</string>
+            <string>processing</string> //you can add this if needed
+        </array>
+        ```
 
 3. Usage
   * Import
@@ -147,6 +165,12 @@ Our top sponsors are shown below!
       });
     ```
 
+  * request permission for full intent Notification/full screen locked screen Android 14+
+  For Android 14+, please `requestFullIntentPermission`
+    ```dart
+      await FlutterCallkitIncoming.requestFullIntentPermission();
+    ```
+
   * Show miss call notification
     ```dart
       this._currentUuid = _uuid.v4();
@@ -208,7 +232,7 @@ Our top sponsors are shown below!
     After the call is ACCEPT or startCall please call this func.
     normally it should be called when webrtc/p2p.... is established.
 
-  * Get device push token VoIP. iOS: return deviceToken, Android: Empty
+  * Get device push token VoIP. iOS: return deviceToken, Android: none
 
     ```dart
       await FlutterCallkitIncoming.getDevicePushTokenVoIP();
@@ -504,7 +528,7 @@ Our top sponsors are shown below!
     |  **`incomingCallNotificationChannelName`** | Notification channel name of incoming call.                                                          | `Incoming call`                                                   |
     |  **`missedCallNotificationChannelName`** | Notification channel name of missed call.                                                            | `Missed call`                                                     |
     |  **`isShowCallID`** | Show call id app inside full screen/notification.                                                    | false                                                             |
-    |  **`isShowFullLockedScreen`** | Show full screen on Locked Screen.                                                                   | true                                                              |
+    |  **`isShowFullLockedScreen`** | Show full screen on Locked Screen(please make sure call `requestFullIntentPermission` for android 14+).                                                                   | true                                                              |
 
     <br>
 
@@ -547,7 +571,8 @@ Our top sponsors are shown below!
 7. Todo
   * Run background
   * Simplify the setup process
-
+  * Custom notification for iOS(Missing notification)
+  * Keep notification when calling
     <br>
 
 ## :bulb: Demo

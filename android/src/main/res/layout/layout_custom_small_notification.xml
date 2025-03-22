@@ -40,13 +40,31 @@
         </LinearLayout>
 
 
-        <ImageView
-            android:id="@+id/ivAvatar"
-            android:layout_width="@dimen/base_margin_x4"
-            android:layout_height="@dimen/base_margin_x4"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_default_avatar"
-            android:visibility="invisible" />
+        <RelativeLayout
+            android:layout_width="@dimen/base_margin_x4_8"
+            android:layout_height="@dimen/base_margin_x4_8"
+            android:clipChildren="false">
+
+            <TextView
+                android:id="@+id/ivAvatarPlaceholder"
+                android:layout_width="@dimen/base_margin_x4_8"
+                android:layout_height="@dimen/base_margin_x4_8"
+                android:background="#8D929B"
+                android:gravity="center"
+                android:text=""
+                android:textColor="@android:color/white"
+                tools:ignore="TextContrastCheck" />
+
+            <ImageView
+                android:id="@+id/ivAvatar"
+                android:layout_width="@dimen/base_margin_x4_8"
+                android:layout_height="@dimen/base_margin_x4_8"
+                android:background="#8D929B"
+                android:gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:visibility="invisible" />
+        </RelativeLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -66,7 +84,8 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            tools:ignore="TouchTargetSizeCheck">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -105,7 +124,8 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            tools:ignore="TouchTargetSizeCheck">
 
             <ImageView
                 android:layout_width="wrap_content"

@@ -22,14 +22,13 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.text.TextUtils
-import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.hiennv.flutter_callkit_incoming.widgets.CircleTransform
+import androidx.core.app.Person
 import com.squareup.picasso.OkHttp3Downloader
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -172,39 +171,53 @@ class CallkitNotificationManager(private val context: Context) {
             notificationBuilder.setCustomBigContentView(notificationViews)
             notificationBuilder.setCustomHeadsUpContentView(notificationSmallViews)
         } else {
-            val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-            if (avatarUrl != null && avatarUrl.isNotEmpty()) {
-                val headers =
-                    data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
-                getPicassoInstance(context, headers).load(avatarUrl)
-                    .into(targetLoadAvatarDefault)
-            }
-            notificationBuilder.setContentTitle(
-                data.getString(
-                    CallkitConstants.EXTRA_CALLKIT_NAME_CALLER,
-                    ""
-                )
-            )
             notificationBuilder.setContentText(
                 data.getString(
                     CallkitConstants.EXTRA_CALLKIT_HANDLE,
                     ""
                 )
             )
-            val textDecline = data.getString(CallkitConstants.EXTRA_CALLKIT_TEXT_DECLINE, "")
-            val declineAction: NotificationCompat.Action = NotificationCompat.Action.Builder(
-                R.drawable.ic_decline,
-                if (TextUtils.isEmpty(textDecline)) context.getString(R.string.text_decline) else textDecline,
-                getDeclinePendingIntent(notificationId, data)
-            ).build()
-            notificationBuilder.addAction(declineAction)
-            val textAccept = data.getString(CallkitConstants.EXTRA_CALLKIT_TEXT_ACCEPT, "")
-            val acceptAction: NotificationCompat.Action = NotificationCompat.Action.Builder(
-                R.drawable.ic_accept,
-                if (TextUtils.isEmpty(textDecline)) context.getString(R.string.text_accept) else textAccept,
-                getAcceptPendingIntent(notificationId, data)
-            ).build()
-            notificationBuilder.addAction(acceptAction)
+            val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
+            if (avatarUrl != null && avatarUrl.isNotEmpty()) {
+                val headers =
+                    data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
+                getPicassoInstance(context, headers).load(avatarUrl)
+                    .error(R.drawable.ic_default_avatar).into(targetLoadAvatarDefault)
+            }
+            val caller = data.getString(CallkitConstants.EXTRA_CALLKIT_NAME_CALLER, "")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val person = Person.Builder()
+                    .setName(caller)
+                    .setImportant(
+                        data.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_IMPORTANT, false)
+                    )
+                    .setBot(data.getBoolean(CallkitConstants.EXTRA_CALLKIT_IS_BOT, false))
+                    .build()
+                notificationBuilder.setStyle(
+                    NotificationCompat.CallStyle.forIncomingCall(
+                        person,
+                        getDeclinePendingIntent(notificationId, data),
+                        getAcceptPendingIntent(notificationId, data),
+                    )
+                        .setIsVideo(typeCall > 0)
+                )
+            } else {
+                notificationBuilder.setContentTitle(caller)
+                val textDecline = data.getString(CallkitConstants.EXTRA_CALLKIT_TEXT_DECLINE, "")
+                val declineAction: NotificationCompat.Action = NotificationCompat.Action.Builder(
+                    R.drawable.ic_decline,
+                    if (TextUtils.isEmpty(textDecline)) context.getString(R.string.text_decline) else textDecline,
+                    getDeclinePendingIntent(notificationId, data)
+                ).build()
+                notificationBuilder.addAction(declineAction)
+                val textAccept = data.getString(CallkitConstants.EXTRA_CALLKIT_TEXT_ACCEPT, "")
+                val acceptAction: NotificationCompat.Action = NotificationCompat.Action.Builder(
+                    R.drawable.ic_accept,
+                    if (TextUtils.isEmpty(textDecline)) context.getString(R.string.text_accept) else textAccept,
+                    getAcceptPendingIntent(notificationId, data)
+                ).build()
+                notificationBuilder.addAction(acceptAction)
+            }
         }
         val notification = notificationBuilder.build()
         notification.flags = Notification.FLAG_INSISTENT
@@ -242,11 +255,23 @@ class CallkitNotificationManager(private val context: Context) {
             if (TextUtils.isEmpty(textAccept)) context.getString(R.string.text_accept) else textAccept
         )
         val avatarUrl = data.getString(CallkitConstants.EXTRA_CALLKIT_AVATAR, "")
-        if (avatarUrl != null && avatarUrl.isNotEmpty()) {
+
+         var temp = data.getString(CallkitConstants.EXTRA_CALLKIT_NAME_CALLER, "")?.split(' ')
+            ?.mapNotNull { it.firstOrNull()?.toString() }
+            ?.reduce { acc, s -> acc + s }
+        if (temp?.length!! < 2) temp =
+            data?.getString(CallkitConstants.EXTRA_CALLKIT_NAME_CALLER, "")?.substring(0, 2)
+
+        remoteViews.setTextViewText(
+            R.id.ivAvatarPlaceholder,
+            temp
+        )
+
+        if (avatarUrl != null && avatarUrl.isNotEmpty() && avatarUrl != "null") {
             val headers =
                 data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
             getPicassoInstance(context, headers).load(avatarUrl)
-                .transform(CircleTransform())
+                .error(R.drawable.ic_default_avatar)
                 .into(targetLoadAvatarCustomize)
         }
     }
@@ -333,7 +358,7 @@ class CallkitNotificationManager(private val context: Context) {
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
                 getPicassoInstance(context, headers).load(avatarUrl)
-                    .transform(CircleTransform()).into(targetLoadAvatarCustomize)
+                    .error(R.drawable.ic_default_avatar).into(targetLoadAvatarCustomize)
             }
             notificationBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
             notificationBuilder.setCustomContentView(notificationViews)
@@ -357,7 +382,7 @@ class CallkitNotificationManager(private val context: Context) {
                     data.getSerializable(CallkitConstants.EXTRA_CALLKIT_HEADERS) as HashMap<String, Any?>
 
                 getPicassoInstance(context, headers).load(avatarUrl)
-                    .into(targetLoadAvatarDefault)
+                    .error(R.drawable.ic_default_avatar).into(targetLoadAvatarDefault)
             }
             val isShowCallback = data.getBoolean(
                 CallkitConstants.EXTRA_CALLKIT_MISSED_CALL_CALLBACK_SHOW,
@@ -553,6 +578,15 @@ class CallkitNotificationManager(private val context: Context) {
                     PERMISSION_NOTIFICATION_REQUEST_CODE
                 )
             }
+        }
+    }
+
+    fun requestFullIntentPermission(activity: Activity?) {
+        if (Build.VERSION.SDK_INT > 33) {
+           val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                data =  Uri.fromParts("package", activity?.packageName, null)
+            }
+            activity?.startActivity(intent)
         }
     }
 
