@@ -28,3 +28,7 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+kotlin {
+    jvmToolchain(17)
+}
