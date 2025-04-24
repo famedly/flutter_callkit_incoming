@@ -9,6 +9,7 @@ class AndroidParams {
     this.isCustomNotification,
     this.isCustomSmallExNotification,
     this.isShowLogo,
+    this.logoUrl,
     this.isShowCallID,
     this.ringtonePath,
     this.backgroundColor,
@@ -18,6 +19,8 @@ class AndroidParams {
     this.incomingCallNotificationChannelName,
     this.missedCallNotificationChannelName,
     this.isShowFullLockedScreen,
+    this.isImportant,
+    this.isBot,
   });
 
   /// Using custom notifications.
@@ -29,10 +32,13 @@ class AndroidParams {
   /// Show logo app inside full screen.
   final bool? isShowLogo;
 
+  /// Logo aoo inside full screen, example: http://... https://... or "assets/abc.png"
+  final String? logoUrl;
+
   /// Show call id app inside full screen.
   final bool? isShowCallID;
 
-  /// File name ringtone, put file into /android/app/src/main/res/raw/ringtone_default.pm3 -> value: `ringtone_default.pm3`
+  /// File name ringtone, put file into /android/app/src/main/res/raw/ringtone_default.mp3 -> value: `ringtone_default`
   final String? ringtonePath;
 
   /// Incoming call screen background color.
@@ -55,6 +61,14 @@ class AndroidParams {
 
   /// Show full locked screen.
   final bool? isShowFullLockedScreen;
+
+  /// Caller is important to the user of this device with regards to how frequently they interact.
+  /// https://developer.android.com/reference/androidx/core/app/Person#isImportant()
+  final bool? isImportant;
+
+  /// Used primarily to identify automated tooling.
+  /// https://developer.android.com/reference/androidx/core/app/Person#isBot()
+  final bool? isBot;
 
   factory AndroidParams.fromJson(Map<String, dynamic> json) =>
       _$AndroidParamsFromJson(json);

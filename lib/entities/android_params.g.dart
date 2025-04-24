@@ -11,6 +11,7 @@ AndroidParams _$AndroidParamsFromJson(Map<String, dynamic> json) =>
       isCustomNotification: json['isCustomNotification'] as bool?,
       isCustomSmallExNotification: json['isCustomSmallExNotification'] as bool?,
       isShowLogo: json['isShowLogo'] as bool?,
+      logoUrl: json['logoUrl'] as String?,
       isShowCallID: json['isShowCallID'] as bool?,
       ringtonePath: json['ringtonePath'] as String?,
       backgroundColor: json['backgroundColor'] as String?,
@@ -22,6 +23,8 @@ AndroidParams _$AndroidParamsFromJson(Map<String, dynamic> json) =>
       missedCallNotificationChannelName:
           json['missedCallNotificationChannelName'] as String?,
       isShowFullLockedScreen: json['isShowFullLockedScreen'] as bool?,
+      isImportant: json['isImportant'] as bool?,
+      isBot: json['isBot'] as bool?,
     );
 
 Map<String, dynamic> _$AndroidParamsToJson(AndroidParams instance) =>
@@ -29,6 +32,7 @@ Map<String, dynamic> _$AndroidParamsToJson(AndroidParams instance) =>
       'isCustomNotification': instance.isCustomNotification,
       'isCustomSmallExNotification': instance.isCustomSmallExNotification,
       'isShowLogo': instance.isShowLogo,
+      'logoUrl': instance.logoUrl,
       'isShowCallID': instance.isShowCallID,
       'ringtonePath': instance.ringtonePath,
       'backgroundColor': instance.backgroundColor,
@@ -40,4 +44,6 @@ Map<String, dynamic> _$AndroidParamsToJson(AndroidParams instance) =>
       'missedCallNotificationChannelName':
           instance.missedCallNotificationChannelName,
       'isShowFullLockedScreen': instance.isShowFullLockedScreen,
+      'isImportant': instance.isImportant,
+      'isBot': instance.isBot,
     };
