@@ -59,7 +59,7 @@ class CallkitNotificationManager(private val context: Context) {
     private var targetLoadAvatarDefault = object : Target {
         override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
             notificationBuilder.setLargeIcon(bitmap)
-            getNotificationManager().notify(notificationId, notificationBuilder.build())
+            notifyIfStillShown(notificationId, notificationBuilder.build())
         }
 
         override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
@@ -75,7 +75,7 @@ class CallkitNotificationManager(private val context: Context) {
             notificationViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
             notificationSmallViews?.setImageViewBitmap(R.id.ivAvatar, bitmap)
             notificationSmallViews?.setViewVisibility(R.id.ivAvatar, View.VISIBLE)
-            getNotificationManager().notify(notificationId, notificationBuilder.build())
+            notifyIfStillShown(notificationId, notificationBuilder.build())
         }
 
         override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
@@ -511,6 +511,16 @@ class CallkitNotificationManager(private val context: Context) {
 
     private fun getNotificationManager(): NotificationManagerCompat {
         return NotificationManagerCompat.from(context)
+    }
+
+    // Avatars can finish loading after the call was accepted or declined, which
+    // would otherwise post the cleared notification again.
+    private fun notifyIfStillShown(id: Int, notification: Notification) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (manager.activeNotifications.none { it.id == id }) return
+        }
+        getNotificationManager().notify(id, notification)
     }
 
 
